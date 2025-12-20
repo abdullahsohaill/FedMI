@@ -5,7 +5,8 @@ import json
 
 from config import Config
 from models import get_model
-from dataset import get_cifar10, partition_iid, get_dataloader, get_test_dataloader
+# from dataset import get_cifar10, partition_iid, get_dataloader, get_test_dataloader
+from dataset import get_dataset, partition_iid, get_dataloader, get_test_dataloader 
 from train import analyze_iou
 from fed import run_federated_training
 
@@ -25,6 +26,7 @@ def main():
     parser.add_argument("--train_mode", type=str, choices=["sparse", "dense"], help="Training mode")
     parser.add_argument("--device", type=str, help="Device to use (cuda/cpu)")
     parser.add_argument("--seed", type=int, help="Random seed")
+    parser.add_argument("--resume", action="store_true", help="Resume from latest checkpoint if available")
     args = parser.parse_args()
 
     config = Config()
@@ -36,14 +38,24 @@ def main():
         config.device = args.device
     if args.seed:
         config.seed = args.seed
+    if args.resume:
+        config.resume = True
 
     set_seed(config.seed)
     print(f"Using device: {config.device}")
+    print(f"Dataset: {config.dataset_name}")
 
-    # Load data
-    trainset, testset = get_cifar10(config)
+    # --- CHANGED: Use generic get_dataset ---
+    trainset, testset = get_dataset(config)
+
     testloader = get_test_dataloader(testset, config)
-    class_names = trainset.classes
+    # MNIST has a .classes attribute too, usually ['0 - zero', '1 - one', etc]
+    class_names = trainset.classes 
+
+    # # Load data
+    # trainset, testset = get_cifar10(config)
+    # testloader = get_test_dataloader(testset, config)
+    # class_names = trainset.classes
 
     # Partition data for FL (IID)
     print("Partitioning data for IID Federated Learning...")
