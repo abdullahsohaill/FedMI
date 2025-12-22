@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Circuit Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        select, input[type="file"], button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select:hover, input[type="file"]:hover, button:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            font-weight: 600;
+        }
+
+        button.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        #info {
+            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+        
+        .info-text {
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .canvas-wrapper.single {
+            flex: 1;
+        }
+
+        .canvas-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .file-input-label:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-controls {
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .view-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <div class="control-group">
+                <label>Load JSON File</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".json">
+                    <label for="fileInput" class="file-input-label">Choose File</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>View Mode</label>
+                <button id="toggleComparison">Enable Comparison Mode</button>
+            </div>
+            
+            <div class="comparison-controls" id="leftControls">
+                <div class="control-group">
+                    <label>Model Type</label>
+                    <select id="modelType1">
+                        <option value="clients_local_model">Local Model</option>
+                        <option value="clients_global_model">Global Model</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Client</label>
+                    <select id="clientSelect1">
+                        <option value="">Select Client</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Class</label>
+                    <select id="classSelect1">
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="comparison-controls" id="rightControls" style="display: none;">
+                <div class="control-group">
+                    <label>Model Type (Right)</label>
+                    <select id="modelType2">
+                        <option value="clients_local_model">Local Model</option>
+                        <option value="clients_global_model">Global Model</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Client (Right)</label>
+                    <select id="clientSelect2">
+                        <option value="">Select Client</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Class (Right)</label>
+                    <select id="classSelect2">
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="info">
+                <div class="info-text">Active Neurons (Left): <span id="activeCount1">0</span></div>
+                <div class="info-text">Connections (Left): <span id="connectionCount1">0</span></div>
+                <div class="info-text" id="rightInfo" style="display: none;">Active Neurons (Right): <span id="activeCount2">0</span></div>
+                <div class="info-text" id="rightInfo2" style="display: none;">Connections (Right): <span id="connectionCount2">0</span></div>
+            </div>
+        </div>
+        
+        <div id="canvas-container">
+            <div class="canvas-wrapper single" id="canvasWrapper1">
+                <div class="canvas-title" id="title1"></div>
+                <div id="loading">Load a JSON file to begin</div>
+            </div>
+            <div class="canvas-wrapper" id="canvasWrapper2" style="display: none;">
+                <div class="canvas-title" id="title2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Network architecture
+        const LAYER_SIZES = [32, 64, 128];
+        const LAYER_NAMES = ['conv1', 'conv2', 'conv3'];
+        
+        let data = null;
+        let comparisonMode = false;
+
+        // Scene objects for both views
+        const views = {
+            left: { scene: null, camera: null, renderer: null, neurons: [], connections: [] },
+            right: { scene: null, camera: null, renderer: null, neurons: [], connections: [] }
+        };
+        
+        // Initialize Three.js scene
+        function initScene(viewKey, container) {
+            const view = views[viewKey];
+            
+            // Scene
+            view.scene = new THREE.Scene();
+            view.scene.background = new THREE.Color(0x1a1a2e);
+            
+            // Camera
+            view.camera = new THREE.PerspectiveCamera(
+                75,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            view.camera.position.set(0, 0, 20);
+            
+            // Renderer
+            view.renderer = new THREE.WebGLRenderer({ antialias: true });
+            view.renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(view.renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            view.scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            view.scene.add(directionalLight);
+            
+            // Simple rotation controls
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            
+            view.renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            view.renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    view.scene.rotation.y += deltaX * 0.01;
+                    view.scene.rotation.x += deltaY * 0.01;
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+            
+            view.renderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            // Zoom with mouse wheel
+            view.renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                view.camera.position.z += e.deltaY * 0.01;
+                view.camera.position.z = Math.max(5, Math.min(40, view.camera.position.z));
+            });
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            Object.values(views).forEach(view => {
+                if (view.renderer && view.scene && view.camera) {
+                    view.renderer.render(view.scene, view.camera);
+                }
+            });
+        }
+        
+        function clearVisualization(viewKey) {
+            const view = views[viewKey];
+            view.neurons.forEach(n => view.scene.remove(n));
+            view.connections.forEach(c => view.scene.remove(c));
+            view.neurons = [];
+            view.connections = [];
+        }
+        
+        function visualizeCircuit(circuitData, viewKey, title) {
+            const view = views[viewKey];
+            clearVisualization(viewKey);
+            
+            if (!circuitData) return;
+            
+            const layerSpacing = 10;
+            const neuronRadius = 0.15;
+            const activeColor = 0x00ff88;
+            const inactiveColor = 0x333333;
+            const connectionColor = 0x4488ff;
+            
+            let totalActive = 0;
+            let totalConnections = 0;
+            
+            // Store neuron positions
+            const neuronPositions = {};
+            
+            // Create neurons for each layer
+            LAYER_NAMES.forEach((layerName, layerIndex) => {
+                const layerSize = LAYER_SIZES[layerIndex];
+                const activeIndices = new Set(circuitData[layerName] || []);
+                totalActive += activeIndices.size;
+                
+                const x = (layerIndex - 1) * layerSpacing;
+                
+                // Calculate vertical spacing based on layer size
+                // More neurons = more spread out vertically
+                const verticalSpacing = 0.4; // Fixed spacing between neurons
+                const totalHeight = layerSize * verticalSpacing;
+                
+                neuronPositions[layerName] = {};
+                
+                // Create all neurons
+                for (let i = 0; i < layerSize; i++) {
+                    const y = (i * verticalSpacing) - (totalHeight / 2);
+                    const z = 0;
+                    
+                    const isActive = activeIndices.has(i);
+                    const geometry = new THREE.SphereGeometry(neuronRadius, 16, 16);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: isActive ? activeColor : inactiveColor,
+                        transparent: true,
+                        opacity: isActive ? 1.0 : 0.15,
+                        emissive: isActive ? activeColor : 0x000000,
+                        emissiveIntensity: isActive ? 0.3 : 0
+                    });
+                    
+                    const neuron = new THREE.Mesh(geometry, material);
+                    neuron.position.set(x, y, z);
+                    view.scene.add(neuron);
+                    view.neurons.push(neuron);
+                    
+                    neuronPositions[layerName][i] = new THREE.Vector3(x, y, z);
+                }
+                
+                // Add layer label
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 512;
+                canvas.height = 128;
+                context.fillStyle = '#ffffff';
+                context.font = 'bold 48px Arial';
+                context.textAlign = 'center';
+                context.fillText(layerName, 256, 64);
+                context.font = '32px Arial';
+                context.fillText(`${layerSize} neurons`, 256, 100);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.position.set(x, totalHeight / 2 + 2, 0);
+                sprite.scale.set(4, 1, 1);
+                view.scene.add(sprite);
+                view.neurons.push(sprite);
+            });
+            
+            // Create connections between consecutive layers
+            for (let i = 0; i < LAYER_NAMES.length - 1; i++) {
+                const currentLayer = LAYER_NAMES[i];
+                const nextLayer = LAYER_NAMES[i + 1];
+                
+                const currentActive = circuitData[currentLayer] || [];
+                const nextActive = circuitData[nextLayer] || [];
+                
+                currentActive.forEach(currNeuron => {
+                    nextActive.forEach(nextNeuron => {
+                        if (neuronPositions[currentLayer][currNeuron] && 
+                            neuronPositions[nextLayer][nextNeuron]) {
+                            
+                            const start = neuronPositions[currentLayer][currNeuron];
+                            const end = neuronPositions[nextLayer][nextNeuron];
+                            
+                            const points = [start, end];
+                            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                            const material = new THREE.LineBasicMaterial({
+                                color: connectionColor,
+                                transparent: true,
+                                opacity: 0.4,
+                                linewidth: 2
+                            });
+                            
+                            const line = new THREE.Line(geometry, material);
+                            view.scene.add(line);
+                            view.connections.push(line);
+                            totalConnections++;
+                        }
+                    });
+                });
+            }
+            
+            // Update info
+            const infoSuffix = viewKey === 'left' ? '1' : '2';
+            document.getElementById('activeCount' + infoSuffix).textContent = totalActive;
+            document.getElementById('connectionCount' + infoSuffix).textContent = totalConnections;
+            document.getElementById('title' + infoSuffix).textContent = title;
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // File loading
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    data = JSON.parse(event.target.result);
+                    populateSelectors('left');
+                    if (comparisonMode) {
+                        populateSelectors('right');
+                    }
+                    document.getElementById('loading').textContent = 'Select a client and class';
+                } catch (error) {
+                    alert('Error parsing JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        function populateSelectors(side) {
+            if (!data || !data.round_10) return;
+            
+            const suffix = side === 'left' ? '1' : '2';
+            const modelType = document.getElementById('modelType' + suffix).value;
+            const clientsData = data.round_10[modelType];
+            
+            // Populate clients
+            const clientSelect = document.getElementById('clientSelect' + suffix);
+            clientSelect.innerHTML = '<option value="">Select Client</option>';
+            Object.keys(clientsData).forEach(client => {
+                const option = document.createElement('option');
+                option.value = client;
+                option.textContent = client;
+                clientSelect.appendChild(option);
+            });
+            
+            // Populate classes (from first client)
+            const firstClient = Object.keys(clientsData)[0];
+            const classSelect = document.getElementById('classSelect' + suffix);
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            Object.keys(clientsData[firstClient]).forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classSelect.appendChild(option);
+            });
+        }
+        
+        function updateVisualization(side) {
+            if (!data) return;
+            
+            const suffix = side === 'left' ? '1' : '2';
+            const viewKey = side;
+            
+            const modelType = document.getElementById('modelType' + suffix).value;
+            const client = document.getElementById('clientSelect' + suffix).value;
+            const cls = document.getElementById('classSelect' + suffix).value;
+            
+            if (!client || !cls) return;
+            
+            const circuitData = data.round_10[modelType][client][cls];
+            const title = `${client} - ${cls} (${modelType.includes('local') ? 'Local' : 'Global'})`;
+            visualizeCircuit(circuitData, viewKey, title);
+        }
+
+        // Toggle comparison mode
+        document.getElementById('toggleComparison').addEventListener('click', () => {
+            comparisonMode = !comparisonMode;
+            const btn = document.getElementById('toggleComparison');
+            const wrapper1 = document.getElementById('canvasWrapper1');
+            const wrapper2 = document.getElementById('canvasWrapper2');
+            const rightControls = document.getElementById('rightControls');
+            const rightInfo = document.getElementById('rightInfo');
+            const rightInfo2 = document.getElementById('rightInfo2');
+            
+            if (comparisonMode) {
+                btn.textContent = 'Disable Comparison Mode';
+                btn.classList.add('active');
+                wrapper1.classList.remove('single');
+                wrapper2.style.display = 'block';
+                rightControls.style.display = 'flex';
+                rightInfo.style.display = 'block';
+                rightInfo2.style.display = 'block';
+                
+                // Initialize right scene if not already done
+                if (!views.right.renderer) {
+                    initScene('right', wrapper2);
+                }
+                if (data) {
+                    populateSelectors('right');
+                }
+                
+                // Handle resize
+                setTimeout(() => {
+                    handleResize();
+                }, 100);
+            } else {
+                btn.textContent = 'Enable Comparison Mode';
+                btn.classList.remove('active');
+                wrapper1.classList.add('single');
+                wrapper2.style.display = 'none';
+                rightControls.style.display = 'none';
+                rightInfo.style.display = 'none';
+                rightInfo2.style.display = 'none';
+                
+                clearVisualization('right');
+                
+                // Handle resize
+                setTimeout(() => {
+                    handleResize();
+                }, 100);
+            }
+        });
+
+        function handleResize() {
+            Object.entries(views).forEach(([key, view]) => {
+                if (view.renderer && view.camera) {
+                    const wrapper = document.getElementById(key === 'left' ? 'canvasWrapper1' : 'canvasWrapper2');
+                    if (wrapper.style.display !== 'none') {
+                        view.camera.aspect = wrapper.clientWidth / wrapper.clientHeight;
+                        view.camera.updateProjectionMatrix();
+                        view.renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+                    }
+                }
+            });
+        }
+        
+        // Event listeners for left controls
+        document.getElementById('modelType1').addEventListener('change', () => {
+            populateSelectors('left');
+            updateVisualization('left');
+        });
+        document.getElementById('clientSelect1').addEventListener('change', () => updateVisualization('left'));
+        document.getElementById('classSelect1').addEventListener('change', () => updateVisualization('left'));
+        
+        // Event listeners for right controls
+        document.getElementById('modelType2').addEventListener('change', () => {
+            populateSelectors('right');
+            updateVisualization('right');
+        });
+        document.getElementById('clientSelect2').addEventListener('change', () => updateVisualization('right'));
+        document.getElementById('classSelect2').addEventListener('change', () => updateVisualization('right'));
+        
+        // Handle window resize
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize left scene
+        initScene('left', document.getElementById('canvasWrapper1'));
+    </script>
+</body>
+</html>

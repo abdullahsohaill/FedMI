@@ -26,7 +26,7 @@ class Config:
 
     num_clients: int = 5
     num_rounds: int = 10
-    local_epochs: int = 20 # Good for dense/sparse convergence
+    local_epochs: int = 5 # Good for dense/sparse convergence
 
     gate_lr: float = 0.1
     l0_lambda: float = 0.01

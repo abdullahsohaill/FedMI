@@ -203,7 +203,7 @@ def run_federated_training(global_model, client_dataloaders, testloader, config,
         acc = evaluate(global_model, testloader, config)
         print(f"  Round {round_num + 1} Global Acc: {acc:.2f}%")
         save_checkpoint(global_model, round_num + 1, all_circuits, config)
-        save_circuits_to_json(all_circuits, "circuits_per_round.json")
+        save_circuits_to_json(all_circuits, "circuits_json_files/circuits_per_round.json")
     for param in global_model.parameters():
         param.requires_grad = False
     return global_model, all_circuits

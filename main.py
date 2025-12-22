@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import random
 import json
+import os
 
 from config import Config
 from models import get_model
@@ -66,6 +67,12 @@ def main():
 
     # Initialize global model
     global_model = get_model(config)
+
+
+    if not os.path.exists(config.checkpoint_dir):
+        os.makedirs(config.checkpoint_dir)
+    torch.save(global_model.state_dict(), os.path.join(config.checkpoint_dir, "initialization.pt"))
+    print("Saved model initialization to checkpoints/initialization.pt")
 
     # Federated Training (Phase 1 & 2 Integrated)
     # Includes local sparse training and per-round circuit discovery

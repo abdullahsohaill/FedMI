@@ -1,2 +1,73 @@
-/weights
-/data
+# =========================
+# Data & Model Artifacts
+# =========================
+/data/
+/datasets/
+/weights/
+/checkpoints/
+/models/
+/artifacts/
+
+# =========================
+# Cache & Temporary Files
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.cache/
+.cache/**
+*.cache
+tmp/
+temp/
+
+# =========================
+# Experiment Outputs
+# =========================
+/figures/
+/plots/
+/results/
+/outputs/
+/logs/
+/runs/          # TensorBoard, wandb, etc.
+
+# =========================
+# Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Environment / OS
+# =========================
+.env
+.venv
+venv/
+.DS_Store
+Thumbs.db
+
+# =========================
+# Editors / IDEs
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Archives & Large Files
+# =========================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+*.npz
+*.npy
+
+# =========================
+# Logs
+# =========================
+*.log
