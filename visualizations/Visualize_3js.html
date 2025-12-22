@@ -100,10 +100,17 @@
             flex: 1;
             position: relative;
             border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 0; /* Important for flex children */
         }
 
         .canvas-wrapper.single {
             flex: 1;
+        }
+
+        .canvas-wrapper canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .canvas-title {
@@ -361,7 +368,7 @@
             const layerSpacing = 10;
             const neuronRadius = 0.15;
             const activeColor = 0x00ff88;
-            const inactiveColor = 0x333333;
+            const inactiveColor = 0xffffff;
             const connectionColor = 0x4488ff;
             
             let totalActive = 0;
@@ -395,7 +402,7 @@
                     const material = new THREE.MeshPhongMaterial({
                         color: isActive ? activeColor : inactiveColor,
                         transparent: true,
-                        opacity: isActive ? 1.0 : 0.15,
+                        opacity: isActive ? 1.0 : 0.4,
                         emissive: isActive ? activeColor : 0x000000,
                         emissiveIntensity: isActive ? 0.3 : 0
                     });
