@@ -17,10 +17,10 @@ class Config:
     num_workers: int = 0
 
     learning_rate: float = 0.001
-    target_sparsity: float = 0.99
+    target_sparsity: float = 0.995
 
     num_clients: int = 5
-    num_rounds: int = 10
+    num_rounds: int = 5
     local_epochs: int = 5 
 
     gate_lr: float = 0.1

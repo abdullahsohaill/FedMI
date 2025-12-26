@@ -14,7 +14,7 @@ from fed import run_federated_training
 CLIENT_CLASS_MAP = {
     0: [0, 1, 2],       
     1: [3, 4, 5],       
-    2: [6, 7, 8, 9]     
+    2: [6, 7, 8,],     
 }
 
 # CLASSES_TO_DISCOVER = {
@@ -23,9 +23,9 @@ CLIENT_CLASS_MAP = {
 #     2: [6]   
 # }
 CLASSES_TO_DISCOVER = {
-    0: [0, 1, 2], 
-    1: [3, 4, 5],
-    2: [6, 7, 8, 9]   
+    0: [0, 1, 2],       
+    1: [3, 4, 5],       
+    2: [6, 7, 8, 9],          
 }
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -36,7 +36,7 @@ def set_seed(seed):
 
 def main():
     config = Config()
-    config.num_clients = 3
+    config.num_clients = len(CLIENT_CLASS_MAP)
     config.use_mean_ablation = False 
     config.partition_method = "by_class" 
     config.checkpoint_dir = "./checkpoints/controlled_noniid"

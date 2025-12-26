@@ -143,7 +143,7 @@ def main():
     args = parser.parse_args()
 
     # Find the JSON file (assuming controlled non-iid name pattern)
-    json_path = os.path.join(args.dir, "draft1_circuits_per_round_controlled_noniid.json")
+    json_path = os.path.join(args.dir, "circuits_per_round_controlled_noniid.json")
     if not os.path.exists(json_path):
         print(f"File not found: {json_path}")
         return

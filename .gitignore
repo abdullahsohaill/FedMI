@@ -22,21 +22,6 @@ tmp/
 temp/
 
 # =========================
-# Experiment Outputs
-# =========================
-/figures/
-/plots/
-/results/
-/outputs/
-/logs/
-/runs/          # TensorBoard, wandb, etc.
-
-# =========================
-# Notebooks
-# =========================
-.ipynb_checkpoints/
-
-# =========================
 # Environment / OS
 # =========================
 .env
@@ -66,7 +51,6 @@ Thumbs.db
 *.onnx
 *.npz
 *.npy
-*.json
 
 # =========================
 # Logs
