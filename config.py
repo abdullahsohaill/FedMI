@@ -20,7 +20,7 @@ class Config:
     target_sparsity: float = 0.995
 
     num_clients: int = 5
-    num_rounds: int = 5
+    num_rounds: int = 50
     local_epochs: int = 5 
 
     gate_lr: float = 0.1
@@ -32,7 +32,7 @@ class Config:
     use_mean_ablation: bool = False
     partition_method: str = "iid"
     checkpoint_dir: str = "./checkpoints/iid_run"
-    resume: bool = False 
+    resume: bool = True 
 
     use_fedrs: bool = False
     fedrs_alpha: float = 0.4

@@ -13,20 +13,16 @@ from fed import run_federated_training
 
 CLIENT_CLASS_MAP = {
     0: [0, 1, 2],       
-    1: [3, 4, 5],       
-    2: [6, 7, 8,],     
+    1: [0, 3, 4],       
+    2: [0, 6, 7]
 }
 
-# CLASSES_TO_DISCOVER = {
-#     0: [2], 
-#     1: [5],
-#     2: [6]   
-# }
 CLASSES_TO_DISCOVER = {
     0: [0, 1, 2],       
-    1: [3, 4, 5],       
-    2: [6, 7, 8, 9],          
+    1: [0, 3, 4],       
+    2: [0, 6, 7]
 }
+
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -40,17 +36,24 @@ def main():
     config.use_mean_ablation = False 
     config.partition_method = "by_class" 
     config.checkpoint_dir = "./checkpoints/controlled_noniid"
-    
+
+    config.resume = True
+
     print(f"\n==================================================")
-    print(f"STARTING CONTROLLED NON-IID EXPERIMENT")
+    if config.resume:
+        print(f"ATTEMPTING TO RESUME EXPERIMENT")
+    else:
+        print(f"STARTING NEW EXPERIMENT")
     print(f"Client Data Map: {CLIENT_CLASS_MAP}")
     print(f"Circuits to Discover: {CLASSES_TO_DISCOVER}")
     print(f"Output Directory: {config.checkpoint_dir}")
     print(f"==================================================")
 
-    if os.path.exists(config.checkpoint_dir):
-        print(f"Cleaning existing directory: {config.checkpoint_dir}")
-        shutil.rmtree(config.checkpoint_dir, ignore_errors=True)
+    if not config.resume:
+        if os.path.exists(config.checkpoint_dir):
+            print(f"Cleaning existing directory: {config.checkpoint_dir}")
+            shutil.rmtree(config.checkpoint_dir, ignore_errors=True)
+
     os.makedirs(config.checkpoint_dir, exist_ok=True)
 
     set_seed(config.seed)
